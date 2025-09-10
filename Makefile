@@ -3,3 +3,7 @@ build:
 
 lint:
 	golangci-lint run ./...
+
+test:
+	go mod tidy
+	go test -v ./...

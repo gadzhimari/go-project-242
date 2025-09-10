@@ -6,39 +6,50 @@ import (
 	"os"
 )
 
-func GetSize(path string) (string, error) {
-	if path == "" {
-		return "", errors.New("path cannot be empty")
-	}
+const (
+	ErrPath    = "no such file or directory"
+	ErrReadDir = "failed to read directory"
+)
 
+func GetSize(path string) (int64, error) {
+	var totalSize int64 = 0
 	fileInfo, err := os.Lstat(path)
 
 	if err != nil {
-		return "", errors.New("failed to get file info")
+		return totalSize, errors.New(ErrPath)
 	}
 
-	var totalSize int64
 	if fileInfo.IsDir() {
-		files, err := os.ReadDir(path)
+		entries, err := os.ReadDir(path)
 
 		if err != nil {
-			return "", errors.New("failed to read directory")
+			return totalSize, errors.New(ErrReadDir)
 		}
 
-		for _, file := range files {
-			if !file.IsDir() {
-				fileInfo, err := file.Info()
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				entryInfo, err := entry.Info()
 
 				if err != nil {
-					return "", errors.New("failed to get file info")
+					return totalSize, errors.New(ErrPath)
 				}
 
-				totalSize += fileInfo.Size()
+				totalSize += entryInfo.Size()
 			}
 		}
 	} else {
 		totalSize = fileInfo.Size()
 	}
 
-	return fmt.Sprintf("%vB \t%s", totalSize, path), nil
+	return totalSize, nil
+}
+
+func FormatSize(path string) (string, error) {
+	size, err := GetSize(path)
+
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%vB \t%s", size, path), nil
 }

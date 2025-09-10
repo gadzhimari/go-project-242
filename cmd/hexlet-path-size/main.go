@@ -15,7 +15,8 @@ func main() {
 		Name:  "hexlet-path-size",
 		Usage: "print size of a file or directory;",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			size, err := code.GetSize(os.Args[1])
+			path := cmd.Args().Get(0)
+			size, err := code.FormatSize(path)
 			if err != nil {
 				return err
 			}
