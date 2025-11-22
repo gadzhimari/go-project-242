@@ -11,6 +11,18 @@ const (
 	ErrReadDir = "failed to read directory"
 )
 
+func GetPathSize(path string, human bool) (string, error) {
+	size, err := GetSize(path)
+
+	if err != nil {
+		return "", err
+	}
+
+	formattedSize := formatSize(size, human)
+
+	return formattedSize, nil
+}
+
 func GetSize(path string) (int64, error) {
 	var totalSize int64 = 0
 	fileInfo, err := os.Lstat(path)
@@ -44,12 +56,23 @@ func GetSize(path string) (int64, error) {
 	return totalSize, nil
 }
 
-func FormatSize(path string) (string, error) {
-	size, err := GetSize(path)
+func formatSize(size int64, human bool) string {
+	units := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB"}
+	unitIndex := 0
+	floatSize := float64(size)
 
-	if err != nil {
-		return "", err
+	if !human {
+		return fmt.Sprintf("%d%s", size, units[0])
 	}
 
-	return fmt.Sprintf("%vB \t%s", size, path), nil
+	for floatSize >= 1024 && unitIndex < len(units)-1 {
+		floatSize = floatSize / 1024
+		unitIndex++
+	}
+
+	if unitIndex == 0 {
+		return fmt.Sprintf("%.0f%s", floatSize, units[unitIndex])
+	}
+
+	return fmt.Sprintf("%.1f%s", floatSize, units[unitIndex])
 }
