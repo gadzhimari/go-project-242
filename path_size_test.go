@@ -9,22 +9,25 @@ import (
 
 func TestGetSize(t *testing.T) {
 	testCases := []struct {
-		name     string
-		path     string
-		all      bool
-		expected int64
+		name      string
+		path      string
+		recursive bool
+		all       bool
+		expected  int64
 	}{
-		{"Empty file", "./testdata/yarn.lock", false, 0},
-		{"Non-empty file", "./testdata", false, 38},
-		{"Empty folder", "./testdata/lib", false, 0},
-		{"Non-empty folder", "./testdata/doc", false, 13663},
-		{"Folder without hidden files", "./testdata/examples", false, 3345},
-		{"Folder with hidden files", "./testdata/examples", true, 9493},
+		{"Empty file", "./testdata/yarn.lock", false, false, 0},
+		{"Non-empty file", "./testdata", false, false, 38},
+		{"Empty folder", "./testdata/lib", false, false, 0},
+		{"Non-empty folder", "./testdata/doc", false, false, 13663},
+		{"Folder without hidden files", "./testdata/examples", false, false, 3345},
+		{"Folder with hidden files", "./testdata/examples", false, true, 9493},
+		{"Recursive without hidden files", "./testdata", true, false, 2511882},
+		{"Recursive with hidden files", "./testdata", true, true, 2518391},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := GetSize(tc.path, tc.all)
+			got, err := GetSize(tc.path, tc.recursive, tc.all)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, got)
 		})

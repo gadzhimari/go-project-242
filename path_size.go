@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -12,8 +13,8 @@ const (
 	ErrReadDir = "failed to read directory"
 )
 
-func GetPathSize(path string, human, all bool) (string, error) {
-	size, err := GetSize(path, all)
+func GetPathSize(path string, recursive, human, all bool) (string, error) {
+	size, err := GetSize(path, recursive, all)
 
 	if err != nil {
 		return "", err
@@ -24,10 +25,9 @@ func GetPathSize(path string, human, all bool) (string, error) {
 	return formattedSize, nil
 }
 
-func GetSize(path string, all bool) (int64, error) {
+func GetSize(path string, recursive, all bool) (int64, error) {
 	var totalSize int64 = 0
 	fileInfo, err := os.Lstat(path)
-	// fmt.Println("fileInfo ", fileInfo)
 
 	if err != nil {
 		return totalSize, errors.New(ErrPath)
@@ -41,6 +41,10 @@ func GetSize(path string, all bool) (int64, error) {
 		}
 
 		for _, entry := range entries {
+			if !recursive && entry.IsDir() {
+				continue
+			}
+
 			if !all && strings.HasPrefix(entry.Name(), ".") {
 				continue
 			}
@@ -49,10 +53,18 @@ func GetSize(path string, all bool) (int64, error) {
 				entryInfo, err := entry.Info()
 
 				if err != nil {
-					return totalSize, errors.New(ErrPath)
+					return 0, err
 				}
 
 				totalSize += entryInfo.Size()
+			} else {
+				dirSize, err := GetSize(filepath.Join(path, entry.Name()), recursive, all)
+
+				if err != nil {
+					return 0, err
+				}
+
+				totalSize += dirSize
 			}
 		}
 	} else {
