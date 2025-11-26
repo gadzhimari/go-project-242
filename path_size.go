@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
 const (
@@ -11,8 +12,8 @@ const (
 	ErrReadDir = "failed to read directory"
 )
 
-func GetPathSize(path string, human bool) (string, error) {
-	size, err := GetSize(path)
+func GetPathSize(path string, human, all bool) (string, error) {
+	size, err := GetSize(path, all)
 
 	if err != nil {
 		return "", err
@@ -23,9 +24,10 @@ func GetPathSize(path string, human bool) (string, error) {
 	return formattedSize, nil
 }
 
-func GetSize(path string) (int64, error) {
+func GetSize(path string, all bool) (int64, error) {
 	var totalSize int64 = 0
 	fileInfo, err := os.Lstat(path)
+	// fmt.Println("fileInfo ", fileInfo)
 
 	if err != nil {
 		return totalSize, errors.New(ErrPath)
@@ -39,6 +41,10 @@ func GetSize(path string) (int64, error) {
 		}
 
 		for _, entry := range entries {
+			if !all && strings.HasPrefix(entry.Name(), ".") {
+				continue
+			}
+
 			if !entry.IsDir() {
 				entryInfo, err := entry.Info()
 

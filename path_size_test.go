@@ -11,17 +11,20 @@ func TestGetSize(t *testing.T) {
 	testCases := []struct {
 		name     string
 		path     string
+		all      bool
 		expected int64
 	}{
-		{"Empty file", "./testdata/yarn.lock", 0},
-		{"Non-empty file", "./testdata", 38},
-		{"Empty folder", "./testdata/lib", 0},
-		{"Non-empty folder", "./testdata/doc", 13663},
+		{"Empty file", "./testdata/yarn.lock", false, 0},
+		{"Non-empty file", "./testdata", false, 38},
+		{"Empty folder", "./testdata/lib", false, 0},
+		{"Non-empty folder", "./testdata/doc", false, 13663},
+		{"Folder without hidden files", "./testdata/examples", false, 3345},
+		{"Folder with hidden files", "./testdata/examples", true, 9493},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := GetSize(tc.path)
+			got, err := GetSize(tc.path, tc.all)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, got)
 		})
